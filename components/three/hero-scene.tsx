@@ -2,7 +2,6 @@
 
 import { Suspense, useRef, useEffect, useState } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { Environment, ContactShadows } from '@react-three/drei'
 import { ArchitecturalModel } from './architectural-model'
 import * as THREE from 'three'
 
@@ -12,24 +11,16 @@ function CameraRig({ scrollProgress }: { scrollProgress: number }) {
   const targetLookAt = useRef(new THREE.Vector3(0, 0.5, 0))
   
   useFrame(() => {
-    // Cinematic camera movement based on scroll
     const progress = scrollProgress
-    
-    // Camera position interpolation
-    targetPosition.current.x = Math.sin(progress * Math.PI * 0.3) * 3
-    targetPosition.current.y = 2 + progress * 1.5
-    targetPosition.current.z = 12 - progress * 4
-    
-    // Look at target - slightly offset
-    targetLookAt.current.y = 0.5 + progress * 0.5
-    
-    // Smooth lerp to target
+
+    targetPosition.current.x = Math.sin(progress * Math.PI * 0.28) * 1.8
+    targetPosition.current.y = 1.35 + progress * 1.2
+    targetPosition.current.z = 11.8 - progress * 2.6
+
+    targetLookAt.current.x = THREE.MathUtils.lerp(0.15, -0.2, progress)
+    targetLookAt.current.y = 0.6 + progress * 0.35
+
     camera.position.lerp(targetPosition.current, 0.03)
-    
-    const currentLookAt = new THREE.Vector3()
-    camera.getWorldDirection(currentLookAt)
-    currentLookAt.add(camera.position)
-    currentLookAt.lerp(targetLookAt.current, 0.03)
     camera.lookAt(targetLookAt.current)
   })
   
@@ -40,23 +31,10 @@ function Scene({ scrollProgress }: { scrollProgress: number }) {
   return (
     <>
       <color attach="background" args={['#f9f8f6']} />
-      <fog attach="fog" args={['#f9f8f6', 15, 35]} />
+      <fog attach="fog" args={['#f9f8f6', 14, 30]} />
       
       <CameraRig scrollProgress={scrollProgress} />
       <ArchitecturalModel scrollProgress={scrollProgress} />
-      
-      {/* Ground plane with soft shadow */}
-      <ContactShadows 
-        position={[0, -1.55, 0]}
-        opacity={0.4}
-        scale={20}
-        blur={2.5}
-        far={10}
-        color="#8a8580"
-      />
-      
-      {/* Subtle environment for reflections */}
-      <Environment preset="city" environmentIntensity={0.3} />
     </>
   )
 }
