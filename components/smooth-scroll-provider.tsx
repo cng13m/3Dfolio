@@ -1,0 +1,82 @@
+'use client'
+
+import { useEffect, useRef, createContext, useContext, useState, type ReactNode } from 'react'
+import Lenis from 'lenis'
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+interface ScrollContextType {
+  lenis: Lenis | null
+  scrollProgress: number
+}
+
+const ScrollContext = createContext<ScrollContextType>({ lenis: null, scrollProgress: 0 })
+
+export function useScroll() {
+  return useContext(ScrollContext)
+}
+
+interface SmoothScrollProviderProps {
+  children: ReactNode
+}
+
+export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
+  const lenisRef = useRef<Lenis | null>(null)
+  const [scrollProgress, setScrollProgress] = useState(0)
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      touchMultiplier: 2,
+    })
+    
+    lenisRef.current = lenis
+
+    function raf(time: number) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
+    }
+    
+    requestAnimationFrame(raf)
+
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update)
+    
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000)
+    })
+    
+    gsap.ticker.lagSmoothing(0)
+
+    return () => {
+      lenis.destroy()
+      gsap.ticker.remove((time) => lenis.raf(time * 1000))
+    }
+  }, [])
+
+  useGSAP(() => {
+    // Hero scroll progress tracker
+    ScrollTrigger.create({
+      trigger: '#hero-section',
+      start: 'top top',
+      end: 'bottom top',
+      scrub: true,
+      onUpdate: (self) => {
+        setScrollProgress(self.progress)
+      },
+    })
+  }, [])
+
+  return (
+    <ScrollContext.Provider value={{ lenis: lenisRef.current, scrollProgress }}>
+      {children}
+    </ScrollContext.Provider>
+  )
+}
