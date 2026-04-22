@@ -2,204 +2,104 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
 interface ArchitecturalModelProps {
   scrollProgress: number
 }
 
-interface ArchitecturalViewProps {
-  texture: THREE.Texture
-  width: number
-  opacity: number
-  baseY: number
-  x: number
-  z: number
-  rotationY: number
-  yOffset?: number
-  renderOrder: number
-}
-
-interface TextureImageLike {
-  width: number
-  height: number
-}
-
-function createShadowTexture() {
-  const canvas = document.createElement('canvas')
-  canvas.width = 1024
-  canvas.height = 1024
-
-  const context = canvas.getContext('2d')
-  if (!context) {
-    return null
-  }
-
-  const gradient = context.createRadialGradient(512, 512, 120, 512, 512, 460)
-  gradient.addColorStop(0, 'rgba(92, 83, 72, 0.34)')
-  gradient.addColorStop(0.55, 'rgba(120, 110, 100, 0.14)')
-  gradient.addColorStop(1, 'rgba(120, 110, 100, 0)')
-
-  context.fillStyle = gradient
-  context.fillRect(0, 0, 1024, 1024)
-
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.needsUpdate = true
-
-  return texture
-}
-
-function ArchitecturalView({
-  texture,
-  width,
-  opacity,
-  baseY,
-  x,
-  z,
-  rotationY,
-  yOffset = 0,
-  renderOrder,
-}: ArchitecturalViewProps) {
-  const image = texture.image as TextureImageLike
-  const aspect = image.width / image.height
-  const height = width / aspect
-
-  return (
-    <mesh
-      position={[x, baseY + height / 2 + yOffset, z]}
-      rotation={[0, rotationY, 0]}
-      renderOrder={renderOrder}
-    >
-      <planeGeometry args={[width, height]} />
-      <meshBasicMaterial
-        alphaTest={0.08}
-        depthWrite={false}
-        map={texture}
-        opacity={opacity}
-        side={THREE.DoubleSide}
-        toneMapped={false}
-        transparent
-      />
-    </mesh>
-  )
-}
-
-function ClientArchitectureTransition({ scrollProgress }: { scrollProgress: number }) {
+function ClientHeroModel({ scrollProgress }: ArchitecturalModelProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const [viewA, viewB] = useTexture(['/client-hero-view-a.png', '/client-hero-view-b.png'])
+  const { scene } = useGLTF('/client-hero-model.glb')
 
-  const shadowTexture = useMemo(() => createShadowTexture(), [])
+  const model = useMemo(() => {
+    const clonedScene = scene.clone(true)
+    const box = new THREE.Box3().setFromObject(clonedScene)
+    const size = box.getSize(new THREE.Vector3())
+    const center = box.getCenter(new THREE.Vector3())
+    const maxDimension = Math.max(size.x, size.y, size.z) || 1
+    const normalizedScale = 6.4 / maxDimension
 
-  useEffect(() => {
-    for (const texture of [viewA, viewB]) {
-      texture.colorSpace = THREE.SRGBColorSpace
-      texture.anisotropy = 8
-      texture.needsUpdate = true
-    }
-  }, [viewA, viewB])
+    clonedScene.position.sub(center)
+    clonedScene.position.y -= box.min.y - center.y
+    clonedScene.scale.setScalar(normalizedScale)
 
-  useEffect(() => {
-    if (!shadowTexture) {
-      return
-    }
+    clonedScene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) {
+        return
+      }
 
-    shadowTexture.anisotropy = 4
+      child.castShadow = true
+      child.receiveShadow = true
 
-    return () => {
-      shadowTexture.dispose()
-    }
-  }, [shadowTexture])
+      if (Array.isArray(child.material)) {
+        for (const material of child.material) {
+          material.needsUpdate = true
+        }
+      } else if (child.material) {
+        child.material.needsUpdate = true
+      }
+    })
+
+    return clonedScene
+  }, [scene])
 
   useFrame((state) => {
     if (!groupRef.current) {
       return
     }
 
-    const orbit = THREE.MathUtils.smoothstep(scrollProgress, 0.04, 0.92)
-    const targetX = THREE.MathUtils.lerp(0.35, -0.55, orbit)
-    const targetY = THREE.MathUtils.lerp(-0.1, 0.28, orbit)
-    const targetZ = THREE.MathUtils.lerp(0.5, -0.85, orbit)
-    const targetRotationY = THREE.MathUtils.lerp(0.18, -0.16, orbit)
-    const targetRotationX = THREE.MathUtils.lerp(0.04, -0.02, orbit)
-    const floatOffset = Math.sin(state.clock.elapsedTime * 0.35) * 0.04
-    const targetScale = THREE.MathUtils.lerp(0.88, 1.04, orbit) + Math.sin(state.clock.elapsedTime * 0.18) * 0.006
+    const progress = THREE.MathUtils.smoothstep(scrollProgress, 0.02, 0.98)
+    const idle = state.clock.elapsedTime
+
+    const targetRotationY = THREE.MathUtils.lerp(0.7, -0.55, progress) + Math.sin(idle * 0.22) * 0.04
+    const targetRotationX = THREE.MathUtils.lerp(0.08, -0.05, progress)
+    const targetRotationZ = Math.sin(idle * 0.16) * 0.015
+
+    const targetX = THREE.MathUtils.lerp(0.45, -0.55, progress)
+    const targetY = THREE.MathUtils.lerp(-1.8, -1.15, progress) + Math.sin(idle * 0.55) * 0.06
+    const targetZ = THREE.MathUtils.lerp(0.4, -0.9, progress)
+    const targetScale = THREE.MathUtils.lerp(0.9, 1.08, progress) + Math.sin(idle * 0.28) * 0.008
 
     groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.05)
-    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY + floatOffset, 0.05)
+    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.05)
     groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.05)
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotationY, 0.05)
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotationX, 0.05)
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotationY, 0.05)
+    groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetRotationZ, 0.05)
     groupRef.current.scale.setScalar(
       THREE.MathUtils.lerp(groupRef.current.scale.x, targetScale, 0.05)
     )
   })
 
-  const blend = THREE.MathUtils.smoothstep(scrollProgress, 0.18, 0.72)
-  const fadeInB = THREE.MathUtils.smoothstep(scrollProgress, 0.2, 0.66)
-  const fadeOutA = 1 - THREE.MathUtils.smoothstep(scrollProgress, 0.32, 0.76)
-  const baseY = -2.1
+  return <primitive ref={groupRef} object={model} />
+}
 
-  const viewAState = {
-    width: THREE.MathUtils.lerp(9.8, 8.9, blend),
-    opacity: THREE.MathUtils.clamp(fadeOutA, 0, 1),
-    x: THREE.MathUtils.lerp(-0.35, -0.95, blend),
-    z: THREE.MathUtils.lerp(0.35, -0.45, blend),
-    rotationY: THREE.MathUtils.lerp(-0.04, -0.22, blend),
-    yOffset: THREE.MathUtils.lerp(0, 0.08, blend),
-  }
-
-  const viewBState = {
-    width: THREE.MathUtils.lerp(6.6, 8.1, blend),
-    opacity: THREE.MathUtils.clamp(fadeInB, 0, 1),
-    x: THREE.MathUtils.lerp(1.6, 0.35, blend),
-    z: THREE.MathUtils.lerp(-1.15, 0.2, blend),
-    rotationY: THREE.MathUtils.lerp(0.22, 0.02, blend),
-    yOffset: THREE.MathUtils.lerp(0.2, 0.02, blend),
-  }
-
+export function ArchitecturalModel({ scrollProgress }: ArchitecturalModelProps) {
   return (
     <>
-      <mesh position={[0, -2.45, -0.4]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={0}>
-        <planeGeometry args={[10.5, 5.8]} />
-        <meshBasicMaterial
-          depthWrite={false}
-          map={shadowTexture ?? undefined}
-          opacity={0.95}
-          toneMapped={false}
-          transparent
-        />
-      </mesh>
+      <ambientLight intensity={1.25} color="#f7f2ea" />
+      <directionalLight
+        castShadow
+        color="#fff6ea"
+        intensity={2.6}
+        position={[7, 10, 8]}
+        shadow-bias={-0.00008}
+        shadow-mapSize-height={2048}
+        shadow-mapSize-width={2048}
+        shadow-camera-bottom={-12}
+        shadow-camera-far={30}
+        shadow-camera-left={-12}
+        shadow-camera-right={12}
+        shadow-camera-top={12}
+      />
+      <directionalLight color="#dbe7f3" intensity={0.8} position={[-6, 7, -6]} />
+      <pointLight color="#f6ede2" intensity={0.45} position={[0, -1.2, 4]} />
 
-      <group ref={groupRef}>
-        <ArchitecturalView
-          baseY={baseY}
-          opacity={viewAState.opacity}
-          renderOrder={1}
-          rotationY={viewAState.rotationY}
-          texture={viewA}
-          width={viewAState.width}
-          x={viewAState.x}
-          yOffset={viewAState.yOffset}
-          z={viewAState.z}
-        />
-        <ArchitecturalView
-          baseY={baseY}
-          opacity={viewBState.opacity}
-          renderOrder={2}
-          rotationY={viewBState.rotationY}
-          texture={viewB}
-          width={viewBState.width}
-          x={viewBState.x}
-          yOffset={viewBState.yOffset}
-          z={viewBState.z}
-        />
-      </group>
+      <ClientHeroModel scrollProgress={scrollProgress} />
     </>
   )
 }
 
-export function ArchitecturalModel({ scrollProgress }: ArchitecturalModelProps) {
-  return <ClientArchitectureTransition scrollProgress={scrollProgress} />
-}
+useGLTF.preload('/client-hero-model.glb')

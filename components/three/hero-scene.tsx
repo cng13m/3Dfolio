@@ -2,6 +2,7 @@
 
 import { Suspense, useRef, useEffect, useState } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { ContactShadows, Environment } from '@react-three/drei'
 import { ArchitecturalModel } from './architectural-model'
 import * as THREE from 'three'
 
@@ -31,10 +32,19 @@ function Scene({ scrollProgress }: { scrollProgress: number }) {
   return (
     <>
       <color attach="background" args={['#f9f8f6']} />
-      <fog attach="fog" args={['#f9f8f6', 14, 30]} />
+      <fog attach="fog" args={['#f9f8f6', 15, 34]} />
       
       <CameraRig scrollProgress={scrollProgress} />
       <ArchitecturalModel scrollProgress={scrollProgress} />
+      <ContactShadows
+        blur={2.6}
+        color="#8c857d"
+        far={14}
+        opacity={0.34}
+        position={[0, -2.15, 0]}
+        scale={18}
+      />
+      <Environment preset="city" environmentIntensity={0.35} />
     </>
   )
 }
