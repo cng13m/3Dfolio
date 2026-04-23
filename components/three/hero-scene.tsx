@@ -8,21 +8,21 @@ import * as THREE from 'three'
 
 function CameraRig({ scrollProgress }: { scrollProgress: number }) {
   const { camera, size } = useThree()
-  const targetPosition = useRef(new THREE.Vector3(0, 3.25, 9.7))
-  const targetLookAt = useRef(new THREE.Vector3(0, 1.15, 0))
+  const targetPosition = useRef(new THREE.Vector3(0, 3.15, 10.9))
+  const targetLookAt = useRef(new THREE.Vector3(0, 1, 0))
   
   useFrame(() => {
     const progress = scrollProgress
     const isMobile = size.width < 640
-    const baseZ = isMobile ? 13.2 : 9.7
-    const baseY = isMobile ? 3.45 : 3.25
+    const baseZ = isMobile ? 15.2 : 10.9
+    const baseY = isMobile ? 3.35 : 3.15
 
-    targetPosition.current.x = Math.sin(progress * Math.PI * 0.35) * 0.9
-    targetPosition.current.y = baseY + progress * 0.55
-    targetPosition.current.z = baseZ - progress * (isMobile ? 0.55 : 0.9)
+    targetPosition.current.x = Math.sin(progress * Math.PI * 0.5) * 1.1
+    targetPosition.current.y = baseY + progress * 0.45
+    targetPosition.current.z = baseZ - progress * (isMobile ? 0.35 : 0.65)
 
-    targetLookAt.current.x = THREE.MathUtils.lerp(0.02, -0.12, progress)
-    targetLookAt.current.y = (isMobile ? 0.8 : 1.15) + progress * 0.18
+    targetLookAt.current.x = THREE.MathUtils.lerp(0.02, -0.18, progress)
+    targetLookAt.current.y = (isMobile ? 0.75 : 1) + progress * 0.12
 
     camera.position.lerp(targetPosition.current, 0.045)
     camera.lookAt(targetLookAt.current)
@@ -81,7 +81,7 @@ export function HeroScene({ scrollProgress }: HeroSceneProps) {
         shadows
         dpr={[1, 1.4]}
         performance={{ min: 0.55 }}
-        camera={{ position: [0, 3.25, 9.7], fov: 33, near: 0.1, far: 100 }}
+        camera={{ position: [0, 3.15, 10.9], fov: 35, near: 0.1, far: 100 }}
         gl={{ 
           antialias: true,
           alpha: true,

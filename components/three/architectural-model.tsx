@@ -183,14 +183,14 @@ function ReferenceBuilding({ scrollProgress }: ArchitecturalModelProps) {
     const progress = THREE.MathUtils.smoothstep(scrollProgress, 0.02, 0.98)
     const idle = state.clock.elapsedTime
     const isMobile = size.width < 640
-    const responsiveScale = isMobile ? 0.62 : size.width < 900 ? 0.78 : 0.88
+    const responsiveScale = isMobile ? 0.52 : size.width < 900 ? 0.7 : 0.78
 
-    const targetRotationY = THREE.MathUtils.lerp(-0.44, -0.1, progress) + Math.sin(idle * 0.16) * 0.018
-    const targetRotationX = THREE.MathUtils.lerp(0.02, -0.025, progress)
-    const targetX = THREE.MathUtils.lerp(isMobile ? 0.1 : 0.52, isMobile ? -0.04 : 0.28, progress)
-    const targetY = THREE.MathUtils.lerp(isMobile ? -1.7 : -1.78, isMobile ? -1.55 : -1.62, progress)
-    const targetZ = THREE.MathUtils.lerp(0.15, -0.35, progress)
-    const targetScale = responsiveScale * (THREE.MathUtils.lerp(1, 1.08, progress) + Math.sin(idle * 0.22) * 0.004)
+    const targetRotationY = THREE.MathUtils.lerp(-0.78, 0.62, progress) + Math.sin(idle * 0.16) * 0.018
+    const targetRotationX = THREE.MathUtils.lerp(0.02, -0.035, progress)
+    const targetX = THREE.MathUtils.lerp(isMobile ? 0.02 : 0.38, isMobile ? -0.1 : 0.08, progress)
+    const targetY = THREE.MathUtils.lerp(isMobile ? -1.28 : -1.34, isMobile ? -1.12 : -1.18, progress)
+    const targetZ = THREE.MathUtils.lerp(0, -0.22, progress)
+    const targetScale = responsiveScale * (THREE.MathUtils.lerp(1, 1.04, progress) + Math.sin(idle * 0.22) * 0.004)
 
     groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.05)
     groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.05)
