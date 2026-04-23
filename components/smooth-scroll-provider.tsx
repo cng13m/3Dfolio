@@ -61,7 +61,8 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     ScrollTrigger.create({
       trigger: '#hero-section',
       start: 'top top',
-      end: 'bottom top',
+      end: 'bottom bottom',
+      invalidateOnRefresh: true,
       scrub: true,
       onUpdate: (self) => {
         setScrollProgress(self.progress)

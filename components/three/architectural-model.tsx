@@ -185,7 +185,7 @@ function ReferenceBuilding({ scrollProgress }: ArchitecturalModelProps) {
     const isMobile = size.width < 640
     const responsiveScale = isMobile ? 0.52 : size.width < 900 ? 0.7 : 0.78
 
-    const targetRotationY = THREE.MathUtils.lerp(-0.78, 0.62, progress) + Math.sin(idle * 0.16) * 0.018
+    const targetRotationY = THREE.MathUtils.lerp(-1.05, 1.05, progress) + Math.sin(idle * 0.16) * 0.018
     const targetRotationX = THREE.MathUtils.lerp(0.02, -0.035, progress)
     const targetX = THREE.MathUtils.lerp(isMobile ? 0.02 : 0.38, isMobile ? -0.1 : 0.08, progress)
     const targetY = THREE.MathUtils.lerp(isMobile ? -1.28 : -1.34, isMobile ? -1.12 : -1.18, progress)

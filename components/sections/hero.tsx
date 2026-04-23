@@ -73,7 +73,7 @@ export function Hero() {
     <section 
       ref={containerRef}
       id="hero-section"
-      className="relative h-[185vh]"
+      className="relative h-[260vh]"
     >
       {/* Sticky container for 3D scene */}
       <div className="sticky top-0 h-screen overflow-hidden">
