@@ -73,7 +73,7 @@ export function Hero() {
     <section 
       ref={containerRef}
       id="hero-section"
-      className="relative h-[250vh]"
+      className="relative h-[185vh]"
     >
       {/* Sticky container for 3D scene */}
       <div className="sticky top-0 h-screen overflow-hidden">
@@ -85,15 +85,15 @@ export function Hero() {
           {/* Main title */}
           <div 
             ref={titleRef}
-            className="absolute bottom-32 left-6 md:left-12 lg:left-16 overflow-hidden"
+            className="absolute left-6 top-24 max-w-[min(860px,calc(100vw-3rem))] overflow-hidden md:left-12 md:top-28 lg:left-16"
           >
             <div className="title-line">
-              <span className="block font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-light tracking-tight text-foreground/90">
+              <span className="block font-serif text-5xl font-light tracking-normal text-foreground/90 sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl">
                 Architecture
               </span>
             </div>
             <div className="title-line">
-              <span className="block font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-light tracking-tight text-foreground/90">
+              <span className="block font-serif text-5xl font-light tracking-normal text-foreground/90 sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl">
                 of Clarity
               </span>
             </div>
@@ -102,7 +102,7 @@ export function Hero() {
           {/* Subtitle */}
           <div 
             ref={subtitleRef}
-            className="absolute top-32 right-6 md:right-12 lg:right-16 max-w-xs md:max-w-sm text-right"
+            className="absolute bottom-24 right-6 hidden max-w-xs text-right sm:block md:right-12 md:max-w-sm lg:right-16"
           >
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed tracking-wide">
               Award-winning studio crafting timeless spaces through refined design and meticulous attention to materiality.
@@ -123,7 +123,7 @@ export function Hero() {
           </div>
 
           {/* Year badge */}
-          <div className="absolute top-32 left-6 md:left-12 lg:left-16">
+          <div className="absolute right-6 top-28 hidden sm:block md:right-12 lg:right-16">
             <span className="text-xs tracking-[0.25em] text-muted-foreground">
               EST. 2008
             </span>

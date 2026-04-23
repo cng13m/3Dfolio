@@ -2,26 +2,29 @@
 
 import { Suspense, useRef, useEffect, useState } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { ContactShadows, Environment } from '@react-three/drei'
+import { ContactShadows } from '@react-three/drei'
 import { ArchitecturalModel } from './architectural-model'
 import * as THREE from 'three'
 
 function CameraRig({ scrollProgress }: { scrollProgress: number }) {
-  const { camera } = useThree()
-  const targetPosition = useRef(new THREE.Vector3(0, 2, 12))
-  const targetLookAt = useRef(new THREE.Vector3(0, 0.5, 0))
+  const { camera, size } = useThree()
+  const targetPosition = useRef(new THREE.Vector3(0, 3.25, 9.7))
+  const targetLookAt = useRef(new THREE.Vector3(0, 1.15, 0))
   
   useFrame(() => {
     const progress = scrollProgress
+    const isMobile = size.width < 640
+    const baseZ = isMobile ? 13.2 : 9.7
+    const baseY = isMobile ? 3.45 : 3.25
 
-    targetPosition.current.x = Math.sin(progress * Math.PI * 0.28) * 1.8
-    targetPosition.current.y = 1.35 + progress * 1.2
-    targetPosition.current.z = 11.8 - progress * 2.6
+    targetPosition.current.x = Math.sin(progress * Math.PI * 0.35) * 0.9
+    targetPosition.current.y = baseY + progress * 0.55
+    targetPosition.current.z = baseZ - progress * (isMobile ? 0.55 : 0.9)
 
-    targetLookAt.current.x = THREE.MathUtils.lerp(0.15, -0.2, progress)
-    targetLookAt.current.y = 0.6 + progress * 0.35
+    targetLookAt.current.x = THREE.MathUtils.lerp(0.02, -0.12, progress)
+    targetLookAt.current.y = (isMobile ? 0.8 : 1.15) + progress * 0.18
 
-    camera.position.lerp(targetPosition.current, 0.03)
+    camera.position.lerp(targetPosition.current, 0.045)
     camera.lookAt(targetLookAt.current)
   })
   
@@ -32,19 +35,19 @@ function Scene({ scrollProgress }: { scrollProgress: number }) {
   return (
     <>
       <color attach="background" args={['#f9f8f6']} />
-      <fog attach="fog" args={['#f9f8f6', 15, 34]} />
+      <fog attach="fog" args={['#f9f8f6', 14, 28]} />
       
       <CameraRig scrollProgress={scrollProgress} />
       <ArchitecturalModel scrollProgress={scrollProgress} />
       <ContactShadows
-        blur={2.6}
+        blur={2.4}
         color="#8c857d"
-        far={14}
-        opacity={0.34}
-        position={[0, -2.15, 0]}
-        scale={18}
+        far={10}
+        opacity={0.3}
+        position={[0, -2.22, 0]}
+        resolution={512}
+        scale={12}
       />
-      <Environment preset="city" environmentIntensity={0.35} />
     </>
   )
 }
@@ -76,8 +79,9 @@ export function HeroScene({ scrollProgress }: HeroSceneProps) {
     <div className="absolute inset-0">
       <Canvas
         shadows
-        dpr={[1, 2]}
-        camera={{ position: [0, 2, 12], fov: 35, near: 0.1, far: 100 }}
+        dpr={[1, 1.4]}
+        performance={{ min: 0.55 }}
+        camera={{ position: [0, 3.25, 9.7], fov: 33, near: 0.1, far: 100 }}
         gl={{ 
           antialias: true,
           alpha: true,
